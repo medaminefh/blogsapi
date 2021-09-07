@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 });
 
 // Api
-app.use("/api", require("./routes/blog"));
+app.use("/api/blogs", require("./routes/blog"));
 
 app.listen(PORT, () => {
   console.log("Server is running on port ", PORT);
