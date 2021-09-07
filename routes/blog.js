@@ -2,6 +2,7 @@ const router = require("express").Router();
 
 const Blogs = require("../models/blog");
 
+// Get All the blogs
 router.get("/", async (_, res) => {
   try {
     const blogs = await Blogs.find();
@@ -12,6 +13,84 @@ router.get("/", async (_, res) => {
     console.log(error);
     res.status(500).json({ err: "Oops Something went wrong" });
   }
+});
+
+// Create a Blog
+router.post("/", async (req, res) => {
+  try {
+    let { title, short, long, categories } = req.body;
+
+    if ((!title || !short || !long, !categories)) {
+      return res.json({ err: "Please fill all the fields" });
+    }
+
+    title = title.toLowerCase();
+    categories = categories.map((c) => c.toLowerCase());
+
+    const blog = await Blogs.findOne({ title });
+    console.log(blog);
+    if (blog) {
+      return res.json({ err: "There is another blog with that exact title" });
+    }
+
+    const newBlog = new Blogs({
+      title,
+      short,
+      long,
+      categories,
+    });
+
+    await newBlog.save();
+    res.json({ msg: "blog is created" });
+  } catch (err) {
+    return res.status(500).json({ err: err.message });
+  }
+});
+
+// update blog
+router.patch("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let { title, short, long, categories } = req.body;
+
+    title = title.toLowerCase();
+    categories = categories.map((c) => c.toLowerCase());
+    // find that specefic blog
+    const blog = await Blogs.findOne({ _id: id });
+    const {
+      title: blogTitle,
+      short: blogShort,
+      long: blogLong,
+      categories: blogCategories,
+    } = blog;
+
+    const updatedBlog = await Blogs.updateOne(
+      { _id: id },
+      {
+        $set: {
+          title,
+          short,
+          long,
+          categories,
+        },
+      }
+    );
+    console.log(updatedBlog);
+    if (updatedBlog.acknowledged && updatedBlog.modifiedCount === 1)
+      return res.status(200).json({ msg: "Update Success!" });
+    return res.status(500).json({ err: "Somethong wrong" });
+  } catch (err) {
+    return res.status(500).json({ err: err.message });
+  }
+});
+
+// delete a Blog
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const deleted = await Blogs.deleteOne({ _id: id });
+
+  if (deleted.deletedCount === 1) return res.json({ msg: "Delete Success" });
 });
 
 module.exports = router;
