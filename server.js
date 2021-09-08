@@ -23,6 +23,8 @@ app.get("/", (req, res) => {
 // Api
 app.use("/api/blogs", require("./routes/blog"));
 
+app.use("/login", require("./routes/login"));
+
 app.listen(PORT, () => {
   console.log("Server is running on port ", PORT);
 });

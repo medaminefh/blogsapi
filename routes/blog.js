@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const auth = require("../middleware/auth");
 
 const Blogs = require("../models/blog");
 
@@ -16,7 +17,7 @@ router.get("/", async (_, res) => {
 });
 
 // Create a Blog
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   try {
     let { title, short, long, categories } = req.body;
 
@@ -48,7 +49,7 @@ router.post("/", async (req, res) => {
 });
 
 // update blog
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -86,7 +87,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 // delete a Blog
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   const { id } = req.params;
   const deleted = await Blogs.deleteOne({ _id: id });
 
