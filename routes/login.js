@@ -35,9 +35,13 @@ router.post("/", async (req, res) => {
 
     //login
     if (admin.length !== 1) return res.status(400).json({ err: "No Admin" });
-    const { password: adminPassword } = admin[0];
+    const { username: adminUsername, password: adminPassword } = admin[0];
+
+    if (username !== adminUsername)
+      return res.status(400).json({ msg: "username don't much" });
 
     const isMatch = await bcrypt.compare(password, adminPassword);
+
     if (!isMatch)
       return res.status(400).json({ msg: "Password is incorrect." });
     req.user = admin[0];
