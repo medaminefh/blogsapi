@@ -94,11 +94,12 @@ router.delete("/:id", auth, async (req, res) => {
   if (deleted.deletedCount === 1) return res.json({ msg: "Delete Success" });
 });
 
-router.put("/like", (req, res) => {
+router.patch("/like", (req, res) => {
   const { blogId, ip } = req.body;
   Blogs.updateOne(
     { _id: blogId },
     {
+      // just add the ip if that ip is not exist
       $addToSet: { likes: ip },
     },
     { new: true }
@@ -108,7 +109,7 @@ router.put("/like", (req, res) => {
   });
 });
 
-router.put("/unlike", (req, res) => {
+router.patch("/unlike", (req, res) => {
   const { blogId, ip } = req.body;
 
   Blogs.updateOne(
