@@ -99,7 +99,7 @@ router.put("/like", (req, res) => {
   Blogs.updateOne(
     { _id: blogId },
     {
-      $push: { likes: ip },
+      $addToSet: { likes: ip },
     },
     { new: true }
   ).exec((err, data) => {
