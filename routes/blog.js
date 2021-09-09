@@ -77,7 +77,7 @@ router.patch("/:id", auth, async (req, res) => {
         },
       }
     );
-    console.log(updatedBlog);
+
     if (updatedBlog.acknowledged && updatedBlog.modifiedCount === 1)
       return res.status(200).json({ msg: "Update Success!" });
     return res.status(500).json({ err: "Somethong wrong" });
@@ -92,6 +92,35 @@ router.delete("/:id", auth, async (req, res) => {
   const deleted = await Blogs.deleteOne({ _id: id });
 
   if (deleted.deletedCount === 1) return res.json({ msg: "Delete Success" });
+});
+
+router.put("/like", (req, res) => {
+  const { blogId, ip } = req.body;
+  Blogs.updateOne(
+    { _id: blogId },
+    {
+      $push: { likes: ip },
+    },
+    { new: true }
+  ).exec((err, data) => {
+    if (err) return res.status(422).json({ error: err });
+    res.status(200).json(data);
+  });
+});
+
+router.put("/unlike", (req, res) => {
+  const { blogId, ip } = req.body;
+
+  Blogs.updateOne(
+    { _id: blogId },
+    {
+      $pull: { likes: ip },
+    },
+    { new: true }
+  ).exec((err, data) => {
+    if (err) return res.status(422).json({ error: err });
+    res.status(200).json(data);
+  });
 });
 
 module.exports = router;
