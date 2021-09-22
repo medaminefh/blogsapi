@@ -20,6 +20,10 @@ const blogSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    private: {
+      type: String,
+      default: false,
+    },
     likes: [{ type: String }],
   },
   {

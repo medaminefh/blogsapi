@@ -16,6 +16,19 @@ router.get("/", async (_, res) => {
   }
 });
 
+// Get One Blog
+router.get("/:id", async (_, res) => {
+  try {
+    const { id } = req.params;
+    const blog = await Blogs.findOne({ _id: id });
+
+    if (blog) return res.status(200).json(blog);
+    return res.status(404).json({ err: "There is no Blog with that id" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ err: "Oops Something went wrong" });
+  }
+});
 // Create a Blog
 router.post("/", auth, async (req, res) => {
   try {
@@ -29,7 +42,6 @@ router.post("/", auth, async (req, res) => {
     categories = categories.map((c) => c.toLowerCase());
 
     const blog = await Blogs.findOne({ title });
-    console.log(blog);
     if (blog) {
       return res.json({ err: "There is another blog with that exact title" });
     }
@@ -57,14 +69,6 @@ router.patch("/:id", auth, async (req, res) => {
 
     title = title.toLowerCase();
     categories = categories.map((c) => c.toLowerCase());
-    // find that specefic blog
-    const blog = await Blogs.findOne({ _id: id });
-    const {
-      title: blogTitle,
-      short: blogShort,
-      long: blogLong,
-      categories: blogCategories,
-    } = blog;
 
     const updatedBlog = await Blogs.updateOne(
       { _id: id },

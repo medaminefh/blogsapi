@@ -6,10 +6,12 @@ const auth = (req, res, next) => {
     const token = req.header("Authorization");
     if (!token) return res.status(400).json({ msg: "Invalid Authentication." });
 
-    jwt.verify(token, JWT, (err, user) => {
-      if (err) return res.status(400).json({ msg: "Invalid Authentication." });
+    jwt.verify(token, JWT, (err, _) => {
+      if (err) {
+        return res.status(400).json({ msg: "Invalid Authentication." });
+      }
 
-      req.user = user;
+      req.isAuthorized = true;
       next();
     });
   } catch (err) {
