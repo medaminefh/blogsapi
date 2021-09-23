@@ -20,7 +20,7 @@ router.get("/", async (_, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const blog = await Blogs.findOne({ _id: id });
+    const blog = await Blogs.findOne({ _id: id }).lean();
 
     if (blog) {
     const dateobj = blog.createdAt ? new Date(blog.createdAt) : new Date();
@@ -29,11 +29,11 @@ router.get("/:id", async (req, res) => {
   }
   // format the date
   const createdAt =
-    pad(date.getDate()) +
+    pad(dateobj.getDate()) +
     "/" +
-    pad(date.getMonth() + 1) +
+    pad(dateobj.getMonth() + 1) +
     "/" +
-    date.getFullYear();
+    dateobj.getFullYear();
     return res.status(200).json({...blog,createdAt});
     
     }
