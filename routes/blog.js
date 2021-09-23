@@ -6,7 +6,7 @@ const Blogs = require("../models/blog");
 // Get All the blogs
 router.get("/", async (_, res) => {
   try {
-    const blogs = await Blogs.find();
+    const blogs = await Blogs.find().sort({createdAt:-1})
 
     if (blogs) return res.status(200).json(blogs);
     return res.status(404).json({ err: "There is no Blogs" });
