@@ -22,7 +22,21 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const blog = await Blogs.findOne({ _id: id });
 
-    if (blog) return res.status(200).json(blog);
+    if (blog) {
+    const dateobj = blog.createdAt ? new Date(blog.createdAt) : new Date();
+  function pad(n) {
+    return n < 10 ? "0" + n : n;
+  }
+  // format the date
+  const createdAt =
+    pad(date.getDate()) +
+    "/" +
+    pad(date.getMonth() + 1) +
+    "/" +
+    date.getFullYear();
+    return res.status(200).json({...blog,createdAt});
+    
+    }
     return res.status(404).json({ err: "There is no Blog with that id" });
   } catch (error) {
     console.log(error);
