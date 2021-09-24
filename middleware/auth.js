@@ -19,4 +19,22 @@ const auth = (req, res, next) => {
   }
 };
 
-module.exports = auth;
+const userIsAdmin = (req, _, next) => {
+  try {
+    const token = req.header("Authorization");
+    if (!token) return (req.isAuthorized = false);
+
+    jwt.verify(token, JWT, (err, _) => {
+      if (err) {
+        return (req.isAuthorized = false);
+      }
+
+      req.isAuthorized = true;
+      next();
+    });
+  } catch (err) {
+    return (req.isAuthorized = false);
+  }
+};
+
+module.exports = { auth, userIsAdmin };

@@ -28,7 +28,6 @@ router.post("/", async (req, res) => {
         msg: "You're Not Supposed to be Here 😟, Get The Fuck Out Of Here",
       });
 
-    req.isAuthorized = true;
     const token = jwt.sign(
       {
         admin: admin[0],

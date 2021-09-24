@@ -1,12 +1,23 @@
 const router = require("express").Router();
-const auth = require("../middleware/auth");
+const { auth, userIsAdmin } = require("../middleware/auth");
 
 const Blogs = require("../models/blog");
 
 // Get All the blogs
-router.get("/", async (_, res) => {
+router.get("/", userIsAdmin, async (req, res) => {
   try {
-    const blogs = await Blogs.find().sort({createdAt:-1})
+    const { pages } = req.query;
+    let blogs;
+    if (req.isAuthorized) {
+      // return by date
+      blogs = await Blogs.find()
+        .limit(+pages ? +pages : 10)
+        .sort({ createdAt: -1 });
+    } else {
+      blogs = await Blogs.find({})
+        .limit(+pages ? +pages : 10)
+        .sort({ createdAt: -1 });
+    }
 
     if (blogs) return res.status(200).json(blogs);
     return res.status(404).json({ err: "There is no Blogs" });
@@ -23,19 +34,18 @@ router.get("/:id", async (req, res) => {
     const blog = await Blogs.findOne({ _id: id }).lean();
 
     if (blog) {
-    const dateobj = blog.createdAt ? new Date(blog.createdAt) : new Date();
-  function pad(n) {
-    return n < 10 ? "0" + n : n;
-  }
-  // format the date
-  const createdAt =
-    pad(dateobj.getDate()) +
-    "/" +
-    pad(dateobj.getMonth() + 1) +
-    "/" +
-    dateobj.getFullYear();
-    return res.status(200).json({...blog,createdAt});
-    
+      const dateobj = blog.createdAt ? new Date(blog.createdAt) : new Date();
+      function pad(n) {
+        return n < 10 ? "0" + n : n;
+      }
+      // format the date
+      const createdAt =
+        pad(dateobj.getDate()) +
+        "/" +
+        pad(dateobj.getMonth() + 1) +
+        "/" +
+        dateobj.getFullYear();
+      return res.status(200).json({ ...blog, createdAt });
     }
     return res.status(404).json({ err: "There is no Blog with that id" });
   } catch (error) {
@@ -110,6 +120,7 @@ router.delete("/:id", auth, async (req, res) => {
   const deleted = await Blogs.deleteOne({ _id: id });
 
   if (deleted.deletedCount === 1) return res.json({ msg: "Delete Success" });
+  return res.json({ msg: "oOps Something went wrong" });
 });
 
 router.patch("/like", (req, res) => {
