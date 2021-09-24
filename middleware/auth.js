@@ -22,7 +22,10 @@ const auth = (req, res, next) => {
 const userIsAdmin = (req, _, next) => {
   try {
     const token = req.header("Authorization");
-    if (!token) return (req.isAuthorized = false);
+    if (!token) {
+      req.isAuthorized = false;
+      next();
+    }
 
     jwt.verify(token, JWT, (err, _) => {
       if (err) {
