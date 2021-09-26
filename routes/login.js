@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 const { JWT } = process.env;
-const bcrypt = require("bcrypt");
 const { OAuth2Client } = require("google-auth-library");
 const Admin = require("../models/admin");
 
@@ -14,8 +13,7 @@ router.post("/", async (req, res) => {
       idToken: Token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    console.log(ticket);
-    console.log(ticket.getPayload());
+
     const { name, email } = ticket.getPayload();
     const admin = await Admin.find();
 
@@ -34,6 +32,9 @@ router.post("/", async (req, res) => {
       },
       JWT
     );
+    res.cookie("token", token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
     return res.json({ msg: "Login success! 🤩", token });
   } catch (err) {
     return res.status(500).json(err);
