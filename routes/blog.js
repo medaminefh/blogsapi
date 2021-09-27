@@ -11,15 +11,44 @@ router.get("/", userIsAdmin, async (req, res) => {
     if (req.isAuthorized) {
       // return by date
       blogs = await Blogs.find()
+        .lean()
         .limit(+pages ? +pages : 10)
-        .sort({ createdAt: -1 });
+        .sort({ updatedAt: -1 });
     } else {
       blogs = await Blogs.find({})
+        .lean()
         .limit(+pages ? +pages : 10)
-        .sort({ createdAt: -1 });
+        .sort({ updatedAt: -1 });
     }
 
-    if (blogs) return res.status(200).json(blogs);
+    if (blogs) {
+      blogs = blogs.map((blog) => {
+        const createdAtDateObj = new Date(blog.createdAt);
+        const updatedAtDateObj = new Date(blog.updatedAt);
+        function pad(n) {
+          return n < 10 ? "0" + n : n;
+        }
+        // format the date
+        const createdAt =
+          pad(createdAtDateObj.getDate()) +
+          "/" +
+          pad(createdAtDateObj.getMonth() + 1) +
+          "/" +
+          createdAtDateObj.getFullYear();
+
+        const updatedAt =
+          pad(updatedAtDateObj.getDate()) +
+          "/" +
+          pad(updatedAtDateObj.getMonth() + 1) +
+          "/" +
+          updatedAtDateObj.getFullYear();
+
+        blog.createdAt = createdAt;
+        blog.updatedAt = updatedAt;
+        return blog;
+      });
+      return res.status(200).json(blogs);
+    }
     return res.status(404).json({ err: "There is no Blogs" });
   } catch (error) {
     console.log(error);
@@ -34,18 +63,27 @@ router.get("/:id", async (req, res) => {
     const blog = await Blogs.findOne({ _id: id }).lean();
 
     if (blog) {
-      const dateobj = blog.createdAt ? new Date(blog.createdAt) : new Date();
+      const createdAtDateObj = new Date(blog.createdAt);
+
+      const updatedAtDateObj = new Date(blog.updatedAt);
       function pad(n) {
         return n < 10 ? "0" + n : n;
       }
       // format the date
       const createdAt =
-        pad(dateobj.getDate()) +
+        pad(createdAtDateObj.getDate()) +
         "/" +
-        pad(dateobj.getMonth() + 1) +
+        pad(createdAtDateObj.getMonth() + 1) +
         "/" +
-        dateobj.getFullYear();
-      return res.status(200).json({ ...blog, createdAt });
+        createdAtDateObj.getFullYear();
+
+      const updatedAt =
+        pad(updatedAtDateObj.getDate()) +
+        "/" +
+        pad(updatedAtDateObj.getMonth() + 1) +
+        "/" +
+        updatedAtDateObj.getFullYear();
+      return res.status(200).json({ ...blog, createdAt, updatedAt });
     }
     return res.status(404).json({ err: "There is no Blog with that id" });
   } catch (error) {
@@ -88,7 +126,6 @@ router.post("/", auth, async (req, res) => {
 router.patch("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
-
     let { title, short, long, categories } = req.body;
 
     title = title.toLowerCase();
