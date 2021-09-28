@@ -25,11 +25,14 @@ const userIsAdmin = (req, _, next) => {
     if (!token) {
       req.isAuthorized = false;
       next();
+      return;
     }
 
     jwt.verify(token, JWT, (err, _) => {
       if (err) {
-        return (req.isAuthorized = false);
+        req.isAuthorized = false;
+        next();
+        return;
       }
 
       req.isAuthorized = true;
@@ -39,7 +42,6 @@ const userIsAdmin = (req, _, next) => {
     return (req.isAuthorized = false);
   }
 };
-
 
 function notFound(req, res, next) {
   res.status(404);
@@ -54,9 +56,8 @@ function errorHandler(err, req, res, next) {
   res.status(statusCode);
   res.json({
     message: err.message,
-    stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack
+    stack: process.env.NODE_ENV === "production" ? "🥞" : err.stack,
   });
 }
 
-module.exports = { auth, userIsAdmin,  notFound,
-  errorHandler };
+module.exports = { auth, userIsAdmin, notFound, errorHandler };

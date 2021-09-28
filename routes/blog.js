@@ -8,6 +8,7 @@ router.get("/", userIsAdmin, async (req, res) => {
   try {
     const { pages } = req.query;
     let blogs;
+
     if (req.isAuthorized) {
       // return by date
       blogs = await Blogs.find()
@@ -15,7 +16,7 @@ router.get("/", userIsAdmin, async (req, res) => {
         .limit(+pages ? +pages : 10)
         .sort({ updatedAt: -1 });
     } else {
-      blogs = await Blogs.find({})
+      blogs = await Blogs.find({ private: false })
         .lean()
         .limit(+pages ? +pages : 10)
         .sort({ updatedAt: -1 });
@@ -94,7 +95,7 @@ router.get("/:id", async (req, res) => {
 // Create a Blog
 router.post("/", auth, async (req, res) => {
   try {
-    let { title, short, long, categories } = req.body;
+    let { title, short, long, categories, private } = req.body;
 
     if ((!title || !short || !long, !categories)) {
       return res.json({ err: "Please fill all the fields" });
@@ -113,6 +114,7 @@ router.post("/", auth, async (req, res) => {
       short,
       long,
       categories,
+      private,
     });
 
     await newBlog.save();
@@ -126,7 +128,7 @@ router.post("/", auth, async (req, res) => {
 router.patch("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
-    let { title, short, long, categories } = req.body;
+    let { title, short, long, categories, private } = req.body;
 
     title = title.toLowerCase();
     categories = categories.map((c) => c.toLowerCase());
@@ -139,6 +141,7 @@ router.patch("/:id", auth, async (req, res) => {
           short,
           long,
           categories,
+          private,
         },
       }
     );
