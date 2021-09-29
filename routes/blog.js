@@ -106,7 +106,7 @@ router.post("/", auth, async (req, res) => {
 
     const blog = await Blogs.findOne({ title });
     if (blog) {
-      return res.json({ err: "There is another blog with that exact title" });
+      return res.status(400).json({ err: "There is another blog with that exact title" });
     }
 
     const newBlog = new Blogs({
