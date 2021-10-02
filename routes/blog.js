@@ -76,10 +76,14 @@ router.post("/", auth, async (req, res) => {
       return res.json({ err: "Please fill all the fields" });
     }
 
-    title = title.toLowerCase();
+    /* title = title.toLowerCase(); */
+    title = title.trim();
+    short = short.trim();
+    long = long.trim();
+    caseInsensetive = { $regex: new RegExp(title, "i") };
     categories = categories.map((c) => c.toLowerCase());
 
-    const blog = await Blogs.findOne({ title });
+    const blog = await Blogs.findOne({ title: caseInsensetive });
     if (blog) {
       return res
         .status(400)
@@ -107,9 +111,10 @@ router.patch("/:id", auth, async (req, res) => {
     const { id } = req.params;
     let { title, short, long, categories, private } = req.body;
 
-    title = title.toLowerCase();
     categories = categories.map((c) => c.toLowerCase());
-
+    title = title.trim();
+    short = short.trim();
+    long = long.trim();
     const updatedBlog = await Blogs.updateOne(
       { _id: id },
       {
