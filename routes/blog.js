@@ -23,31 +23,6 @@ router.get("/", userIsAdmin, async (req, res) => {
     }
 
     if (blogs) {
-      blogs = blogs.map((blog) => {
-        const createdAtDateObj = new Date(blog.createdAt);
-        const updatedAtDateObj = new Date(blog.updatedAt);
-        function pad(n) {
-          return n < 10 ? "0" + n : n;
-        }
-        // format the date
-        const createdAt =
-          pad(createdAtDateObj.getDate()) +
-          "/" +
-          pad(createdAtDateObj.getMonth() + 1) +
-          "/" +
-          createdAtDateObj.getFullYear();
-
-        const updatedAt =
-          pad(updatedAtDateObj.getDate()) +
-          "/" +
-          pad(updatedAtDateObj.getMonth() + 1) +
-          "/" +
-          updatedAtDateObj.getFullYear();
-
-        blog.createdAt = createdAt;
-        blog.updatedAt = updatedAt;
-        return blog;
-      });
       return res.status(200).json(blogs);
     }
     return res.status(404).json({ err: "There is no Blogs" });
@@ -106,7 +81,9 @@ router.post("/", auth, async (req, res) => {
 
     const blog = await Blogs.findOne({ title });
     if (blog) {
-      return res.status(400).json({ err: "There is another blog with that exact title" });
+      return res
+        .status(400)
+        .json({ err: "There is another blog with that exact title" });
     }
 
     const newBlog = new Blogs({
