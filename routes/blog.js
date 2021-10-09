@@ -39,27 +39,7 @@ router.get("/:id", async (req, res) => {
     const blog = await Blogs.findOne({ _id: id }).lean();
 
     if (blog) {
-      const createdAtDateObj = new Date(blog.createdAt);
-
-      const updatedAtDateObj = new Date(blog.updatedAt);
-      function pad(n) {
-        return n < 10 ? "0" + n : n;
-      }
-      // format the date
-      const createdAt =
-        pad(createdAtDateObj.getDate()) +
-        "/" +
-        pad(createdAtDateObj.getMonth() + 1) +
-        "/" +
-        createdAtDateObj.getFullYear();
-
-      const updatedAt =
-        pad(updatedAtDateObj.getDate()) +
-        "/" +
-        pad(updatedAtDateObj.getMonth() + 1) +
-        "/" +
-        updatedAtDateObj.getFullYear();
-      return res.status(200).json({ ...blog, createdAt, updatedAt });
+      return res.status(200).json(blog);
     }
     return res.status(404).json({ err: "There is no Blog with that id" });
   } catch (error) {
@@ -76,14 +56,14 @@ router.post("/", auth, async (req, res) => {
       return res.json({ err: "Please fill all the fields" });
     }
 
-    /* title = title.toLowerCase(); */
     title = title.trim();
     short = short.trim();
     long = long.trim();
-    caseInsensetive = { $regex: new RegExp(title, "i") };
+    const caseInsensetive = { $regex: new RegExp("^" + title + "$", "i") };
     categories = categories.map((c) => c.toLowerCase());
 
     const blog = await Blogs.findOne({ title: caseInsensetive });
+
     if (blog) {
       return res
         .status(400)
@@ -110,6 +90,17 @@ router.patch("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
     let { title, short, long, categories, private } = req.body;
+    const caseInsensetive = { $regex: new RegExp("^" + title + "$", "i") };
+    const blog = await Blogs.findOne({
+      title: caseInsensetive,
+      _id: { $ne: id },
+    });
+
+    if (blog) {
+      return res
+        .status(400)
+        .json({ err: "There is another blog with that exact title" });
+    }
 
     categories = categories.map((c) => c.toLowerCase());
     title = title.trim();
