@@ -38,6 +38,9 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const blog = await Blogs.findOne({ _id: id }).lean();
 
+    if (blog.private && !req.isAuthorized) {
+      return res.status(500).json({ err: "You're Not Authorized" });
+    }
     if (blog) {
       return res.status(200).json(blog);
     }
