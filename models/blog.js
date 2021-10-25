@@ -24,7 +24,7 @@ const blogSchema = new mongoose.Schema(
       type: String,
       default: false,
     },
-    likes: [{ type: String }],
+    img_url: { type: String, default: "" },
   },
   {
     timestamps: true,

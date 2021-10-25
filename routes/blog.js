@@ -53,7 +53,7 @@ router.get("/:id", async (req, res) => {
 // Create a Blog
 router.post("/", auth, async (req, res) => {
   try {
-    let { title, short, long, categories, private } = req.body;
+    let { title, img_url, short, long, categories, private } = req.body;
 
     if ((!title || !short || !long, !categories)) {
       return res.json({ err: "Please fill all the fields" });
@@ -62,6 +62,8 @@ router.post("/", auth, async (req, res) => {
     title = title.trim();
     short = short.trim();
     long = long.trim();
+    img_url = img_url.trim();
+
     const caseInsensetive = { $regex: new RegExp("^" + title + "$", "i") };
     categories = categories.map((c) => c.toLowerCase());
 
@@ -75,6 +77,7 @@ router.post("/", auth, async (req, res) => {
 
     const newBlog = new Blogs({
       title,
+      img_url,
       short,
       long,
       categories,
@@ -92,7 +95,7 @@ router.post("/", auth, async (req, res) => {
 router.patch("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
-    let { title, short, long, categories, private } = req.body;
+    let { title, img_url, short, long, categories, private } = req.body;
     const caseInsensetive = { $regex: new RegExp("^" + title + "$", "i") };
     const blog = await Blogs.findOne({
       title: caseInsensetive,
@@ -109,11 +112,14 @@ router.patch("/:id", auth, async (req, res) => {
     title = title.trim();
     short = short.trim();
     long = long.trim();
+    img_url = img_url.trim();
+
     const updatedBlog = await Blogs.updateOne(
       { _id: id },
       {
         $set: {
           title,
+          img_url,
           short,
           long,
           categories,
@@ -137,36 +143,6 @@ router.delete("/:id", auth, async (req, res) => {
 
   if (deleted.deletedCount === 1) return res.json({ msg: "Delete Success" });
   return res.json({ msg: "oOps Something went wrong" });
-});
-
-router.patch("/like", (req, res) => {
-  const { blogId, ip } = req.body;
-  Blogs.updateOne(
-    { _id: blogId },
-    {
-      // just add the ip if that ip is not exist
-      $addToSet: { likes: ip },
-    },
-    { new: true }
-  ).exec((err, data) => {
-    if (err) return res.status(422).json({ error: err });
-    res.status(200).json(data);
-  });
-});
-
-router.patch("/unlike", (req, res) => {
-  const { blogId, ip } = req.body;
-
-  Blogs.updateOne(
-    { _id: blogId },
-    {
-      $pull: { likes: ip },
-    },
-    { new: true }
-  ).exec((err, data) => {
-    if (err) return res.status(422).json({ error: err });
-    res.status(200).json(data);
-  });
 });
 
 module.exports = router;
