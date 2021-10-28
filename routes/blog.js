@@ -13,16 +13,19 @@ router.get("/", userIsAdmin, async (req, res) => {
       // return by date
       blogs = await Blogs.find()
         .lean()
-        .limit(+pages ? +pages : 10)
+        .skip(+pages * 10 || 0)
+        .limit(10)
         .sort({ updatedAt: -1 });
     } else {
       blogs = await Blogs.find({ private: false })
         .lean()
-        .limit(+pages ? +pages : 10)
+        .skip(+pages * 10 || 0)
+        .limit(10)
         .sort({ updatedAt: -1 });
     }
 
-    if (blogs) {
+    console.log(blogs.length);
+    if (blogs.length) {
       return res.status(200).json(blogs);
     }
     return res.status(404).json({ err: "There is no Blogs" });
@@ -33,12 +36,12 @@ router.get("/", userIsAdmin, async (req, res) => {
 });
 
 // Get One Blog
-router.get("/:id", async (req, res) => {
+router.get("/:id", userIsAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const blog = await Blogs.findOne({ _id: id }).lean();
 
-    if (blog.private && !req.isAuthorized) {
+    if (blog.private === "true" && !req.isAuthorized) {
       return res.status(500).json({ err: "You're Not Authorized" });
     }
     if (blog) {
