@@ -2,13 +2,16 @@ const router = require("express").Router();
 const { auth, userIsAdmin } = require("../middleware/auth");
 
 const Blogs = require("../models/blog");
+const ViewsCount = require("../models/views");
+
+const { mergeById } = require("../utils/helper");
 
 // Get All the blogs
 router.get("/", userIsAdmin, async (req, res) => {
   try {
     const { pages } = req.query;
     let blogs;
-
+    let views;
     if (req.isAuthorized) {
       // return by date
       blogs = await Blogs.find()
@@ -16,17 +19,22 @@ router.get("/", userIsAdmin, async (req, res) => {
         .skip(+pages * 10 || 0)
         .limit(10)
         .sort({ updatedAt: -1 });
+
+      views = await Views.find().lean();
     } else {
       blogs = await Blogs.find({ private: false })
         .lean()
         .skip(+pages * 10 || 0)
         .limit(10)
         .sort({ updatedAt: -1 });
+
+      views = await Views.find().lean();
     }
 
-    console.log(blogs.length);
+    let output = mergeById(blogs, views);
+
     if (blogs.length) {
-      return res.status(200).json(blogs);
+      return res.status(200).json(output);
     }
     return res.status(404).json({ err: "There is no Blogs" });
   } catch (error) {
@@ -40,12 +48,24 @@ router.get("/:id", userIsAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const blog = await Blogs.findOne({ _id: id }).lean();
+    const views = await ViewsCount.findOne({ blogId: id }).lean();
 
+    // Increment the ViewsCount for this blog
+    new ViewsCount.updateOne(
+      { blogId: id },
+      {
+        $inc: {
+          counter: 1,
+        },
+      }
+    );
+
+    const output = mergeById(blogs, views);
     if (blog.private === "true" && !req.isAuthorized) {
       return res.status(500).json({ err: "You're Not Authorized" });
     }
     if (blog) {
-      return res.status(200).json(blog);
+      return res.status(200).json(output);
     }
     return res.status(404).json({ err: "There is no Blog with that id" });
   } catch (error) {
@@ -87,7 +107,14 @@ router.post("/", auth, async (req, res) => {
       private,
     });
 
-    await newBlog.save();
+    // save the new Blog
+    const newBlogSaved = await newBlog.save();
+
+    // create viewsCounter
+    new ViewsCount({
+      blogId: newBlogSaved.id,
+    }).save();
+
     res.json({ msg: "blog is created" });
   } catch (err) {
     return res.status(500).json({ err: err.message });
@@ -143,6 +170,8 @@ router.patch("/:id", auth, async (req, res) => {
 router.delete("/:id", auth, async (req, res) => {
   const { id } = req.params;
   const deleted = await Blogs.deleteOne({ _id: id });
+
+  await ViewsCount.deleteOne({ blogId: id });
 
   if (deleted.deletedCount === 1) return res.json({ msg: "Delete Success" });
   return res.json({ msg: "oOps Something went wrong" });
