@@ -3,15 +3,14 @@ const { auth, userIsAdmin } = require("../middleware/auth");
 
 const Blogs = require("../models/blog");
 const ViewsCount = require("../models/views");
-
-const { mergeById } = require("../utils/helper");
+const { ObjectId } = require("mongoose").mongo;
 
 // Get All the blogs
 router.get("/", userIsAdmin, async (req, res) => {
   try {
     const { pages } = req.query;
     let blogs;
-    let views;
+
     if (req.isAuthorized) {
       // return by date
       blogs = await Blogs.find()
@@ -19,22 +18,16 @@ router.get("/", userIsAdmin, async (req, res) => {
         .skip(+pages * 10 || 0)
         .limit(10)
         .sort({ updatedAt: -1 });
-
-      views = await Views.find().lean();
     } else {
       blogs = await Blogs.find({ private: false })
         .lean()
         .skip(+pages * 10 || 0)
         .limit(10)
         .sort({ updatedAt: -1 });
-
-      views = await Views.find().lean();
     }
 
-    let output = mergeById(blogs, views);
-
     if (blogs.length) {
-      return res.status(200).json(output);
+      return res.status(200).json(blogs);
     }
     return res.status(404).json({ err: "There is no Blogs" });
   } catch (error) {
@@ -48,23 +41,25 @@ router.get("/:id", userIsAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const blog = await Blogs.findOne({ _id: id }).lean();
-    const views = await ViewsCount.findOne({ blogId: id }).lean();
 
-    // Increment the ViewsCount for this blog
-    new ViewsCount.updateOne(
-      { blogId: id },
-      {
-        $inc: {
-          counter: 1,
-        },
-      }
-    );
-
-    const output = mergeById(blogs, views);
     if (blog.private === "true" && !req.isAuthorized) {
       return res.status(500).json({ err: "You're Not Authorized" });
     }
     if (blog) {
+      const views = await ViewsCount.findOne({ blogId: id }).lean();
+
+      // Increment the ViewsCount for this blog
+      await ViewsCount.updateOne(
+        { blogId: id },
+        {
+          $inc: {
+            counter: 1,
+          },
+        }
+      );
+
+      // merge the two objects and return the response
+      const output = { ...blog, counter: views.counter + 1 };
       return res.status(200).json(output);
     }
     return res.status(404).json({ err: "There is no Blog with that id" });
@@ -112,7 +107,7 @@ router.post("/", auth, async (req, res) => {
 
     // create viewsCounter
     new ViewsCount({
-      blogId: newBlogSaved.id,
+      blogId: ObjectId(newBlogSaved._id),
     }).save();
 
     res.json({ msg: "blog is created" });
