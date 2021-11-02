@@ -27,7 +27,7 @@ router.get("/", userIsAdmin, async (req, res) => {
     }
 
     if (blogs.length) {
-      return res.status(200).json(blogs);
+      return res.status(200).json({blogs,pages:+pages+1 || 1});
     }
     return res.status(404).json({ err: "There is no Blogs" });
   } catch (error) {
