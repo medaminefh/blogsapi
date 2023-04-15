@@ -7,6 +7,7 @@ const Admin = require("../models/admin");
 // Create admin or Signin admin
 router.post("/", async (req, res) => {
   try {
+    console.log({ body: req.body });
     const { token: Token } = req.body;
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     const ticket = await client.verifyIdToken({
@@ -37,6 +38,7 @@ router.post("/", async (req, res) => {
     });
     return res.json({ msg: "Login success! 🤩", token });
   } catch (err) {
+    console.log("err", err);
     return res.status(500).json(err);
   }
 });

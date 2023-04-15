@@ -27,7 +27,7 @@ router.get("/", userIsAdmin, async (req, res) => {
     }
 
     if (blogs.length) {
-      return res.status(200).json({blogs,pages:+pages+1 || 1});
+      return res.status(200).json({ blogs, pages: +pages + 1 || 1 });
     }
     return res.status(404).json({ err: "There is no Blogs" });
   } catch (error) {
@@ -37,20 +37,21 @@ router.get("/", userIsAdmin, async (req, res) => {
 });
 
 // Get One Blog
-router.get("/:id", userIsAdmin, async (req, res) => {
+router.get("/:title", userIsAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    const blog = await Blogs.findOne({ _id: id }).lean();
+    const { title } = req.params;
+    const deformatedTitle = title.split("-").join(" ");
+    const blog = await Blogs.findOne({ title: deformatedTitle }).lean();
 
-    if (blog.private === "true" && !req.isAuthorized) {
+    if (blog.private && !req.isAuthorized) {
       return res.status(500).json({ err: "You're Not Authorized" });
     }
     if (blog) {
-      const views = await ViewsCount.findOne({ blogId: id }).lean();
+      const views = await ViewsCount.findOne({ blogId: blog._id }).lean();
 
       // Increment the ViewsCount for this blog
       await ViewsCount.updateOne(
-        { blogId: id },
+        { blogId: blog._id },
         {
           $inc: {
             counter: 1,

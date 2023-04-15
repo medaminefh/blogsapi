@@ -21,7 +21,7 @@ const blogSchema = new mongoose.Schema(
       required: true,
     },
     private: {
-      type: String,
+      type: Boolean,
       default: false,
     },
     img_url: { type: String, default: "" },
