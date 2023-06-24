@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 const { JWT } = process.env;
 
-export const auth = (req: Request, res: Response, next) => {
+export const auth = (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const token = req.header("Authorization");
 		if (!token) return res.status(400).json({ msg: "Invalid Authentication." });
@@ -20,7 +20,7 @@ export const auth = (req: Request, res: Response, next) => {
 	}
 };
 
-export const userIsAdmin = (req: Request, _, next) => {
+export const userIsAdmin = (req: Request, _, next: NextFunction) => {
 	try {
 		const token = req.header("Authorization");
 		if (!token) {
@@ -44,14 +44,19 @@ export const userIsAdmin = (req: Request, _, next) => {
 	}
 };
 
-export function notFound(req: Request, res: Response, next) {
+export function notFound(req: Request, res: Response, next: NextFunction) {
 	res.status(404);
 	const error = new Error(`🔍 - Not Found - ${req.originalUrl}`);
 	next(error);
 }
 
 /* eslint-disable no-unused-vars */
-export function errorHandler(err, req: Request, res: Response, next) {
+export function errorHandler(
+	err,
+	_: Request,
+	res: Response,
+	next: NextFunction
+) {
 	/* eslint-enable no-unused-vars */
 	const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
 	res.status(statusCode);

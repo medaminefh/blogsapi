@@ -7,13 +7,17 @@ import morgan from "morgan";
 import helmet from "helmet";
 const PORT = process.env.PORT || 5000;
 import express, { Response } from "express";
+import { createLazyRouter } from "express-lazy-router";
 import { errorHandler, notFound } from "./middleware/auth";
-import mongoose from "mongoose";
-import Blogs from "./models/blog";
-import ViewsCount from "./models/views";
-const { ObjectId } = mongoose.mongo;
+// import mongoose from "mongoose";
+/* import Blogs from "./models/blog";
+import ViewsCount from "./models/views"; */
+// const { ObjectId } = mongoose.mongo;
 const app = express();
-
+const lazyLoad = createLazyRouter({
+	// In production, Load router asap
+	preload: process.env.NODE_ENV === "production",
+});
 app.use(morgan("dev"));
 app.use(helmet());
 
@@ -31,7 +35,7 @@ app.get("/", (_, res: Response) => {
 });
 
 // create all the viewsCount documents corresponds to every blog
-app.get("/test", async (_, res: Response) => {
+/* app.get("/test", async (_, res: Response) => {
 	try {
 		const blogs = await Blogs.find().lean();
 
@@ -49,11 +53,17 @@ app.get("/test", async (_, res: Response) => {
 		console.log("Error", err);
 	}
 });
-
+ */
 // Api
-app.use("/api/blogs", require("./routes/blog"));
+app.use(
+	"/api/blogs",
+	lazyLoad(() => import("./routes/blog"))
+);
 
-app.use("/login", require("./routes/login"));
+app.use(
+	"/login",
+	lazyLoad(() => import("./routes/login"))
+);
 
 app.use(notFound);
 app.use(errorHandler);
