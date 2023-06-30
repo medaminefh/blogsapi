@@ -6,9 +6,13 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 const PORT = process.env.PORT || 5000;
-import express, { Response } from "express";
+import express, {
+	ErrorRequestHandler,
+	RequestHandler,
+	Response,
+} from "express";
 import { createLazyRouter } from "express-lazy-router";
-import { errorHandler, notFound } from "./middleware/auth";
+import { notFound, errorHandler } from "./middleware/auth";
 // import mongoose from "mongoose";
 /* import Blogs from "./models/blog";
 import ViewsCount from "./models/views"; */
@@ -27,7 +31,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors());
 
 // connect db
-require("./config.js");
+require("./config");
 
 // Home route
 app.get("/", (_, res: Response) => {
@@ -65,8 +69,8 @@ app.use(
 	lazyLoad(() => import("./routes/login"))
 );
 
-app.use(notFound);
-app.use(errorHandler);
+app.use(notFound as RequestHandler);
+app.use(errorHandler as ErrorRequestHandler);
 
 app.listen(PORT, () => {
 	console.log("Server is running on port ", PORT);
