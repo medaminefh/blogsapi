@@ -6,17 +6,10 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 const PORT = process.env.PORT || 5000;
-import express, {
-	ErrorRequestHandler,
-	RequestHandler,
-	Response,
-} from "express";
+import express, { Response } from "express";
 import { createLazyRouter } from "express-lazy-router";
 import { notFound, errorHandler } from "./middleware/auth";
-// import mongoose from "mongoose";
-/* import Blogs from "./models/blog";
-import ViewsCount from "./models/views"; */
-// const { ObjectId } = mongoose.mongo;
+
 const app = express();
 const lazyLoad = createLazyRouter({
 	// In production, Load router asap
