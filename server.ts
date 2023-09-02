@@ -69,8 +69,8 @@ app.use(
 	lazyLoad(() => import("./routes/login"))
 );
 
-app.use(notFound as RequestHandler);
-app.use(errorHandler as ErrorRequestHandler);
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
 	console.log("Server is running on port ", PORT);

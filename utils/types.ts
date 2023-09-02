@@ -1,9 +1,3 @@
-import { Request } from "express";
-
-export interface ICustomRequest extends Request {
-	isAuthorized: boolean; // or any other type
-}
-
 export enum HttpCode {
 	OK = 200,
 	NO_CONTENT = 204,

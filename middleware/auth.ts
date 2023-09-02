@@ -1,13 +1,8 @@
 import jwt from "jsonwebtoken";
-import { Response, NextFunction } from "express";
-import { ICustomRequest } from "../utils/types";
+import { Request, Response, NextFunction } from "express";
 const { JWT } = process.env;
 
-export const auth = (
-	req: ICustomRequest,
-	res: Response,
-	next: NextFunction
-) => {
+export const auth = (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const token = req.header("Authorization");
 		if (!token) return res.status(400).json({ msg: "Invalid Authentication." });
@@ -25,11 +20,7 @@ export const auth = (
 	}
 };
 
-export const userIsAdmin = (
-	req: ICustomRequest,
-	_: Response,
-	next: NextFunction
-) => {
+export const userIsAdmin = (req: Request, _: Response, next: NextFunction) => {
 	try {
 		const token = req.header("Authorization");
 		if (!token) {
@@ -53,13 +44,8 @@ export const userIsAdmin = (
 	}
 };
 
-export function notFound(
-	req: ICustomRequest,
-	res: Response,
-	next: NextFunction
-) {
+export function notFound(req: Request, res: Response, next: NextFunction) {
 	const error = new Error(`🔍 - Not Found - ${req.originalUrl}`);
-	res.status(404).json({ error });
 	next(error);
 }
 
@@ -72,8 +58,7 @@ export function errorHandler(
 ) {
 	/* eslint-enable no-unused-vars */
 	const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
-	res.status(statusCode);
-	return res.json({
+	return res.status(statusCode).json({
 		message: err.message,
 		stack: process.env.NODE_ENV === "production" ? "🥞" : err.stack,
 	});
